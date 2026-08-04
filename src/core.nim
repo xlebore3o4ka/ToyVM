@@ -54,6 +54,7 @@ proc replaceState(n: NimNode, sym: NimNode): NimNode =
 macro register(name, body: untyped): untyped =
   let procName = ident("handle_" & $name)
   let stateSym = genSym(nskParam, "state")
+  let constName = ident("I_" & $name)
 
   let newBody = replaceState(body, stateSym)
 
@@ -63,9 +64,9 @@ macro register(name, body: untyped): untyped =
       `newBody`
       {.pop.}
 
-    let `name`* = uint8(opcodeCounter)
+    let `constName`* = uint8(opcodeCounter)
     opcodeCounter.inc
-    dispatch[`name`] = cast[pointer](`procName`)
+    dispatch[`constName`] = cast[pointer](`procName`)
 
 register RET:
   state.running = false
@@ -127,8 +128,11 @@ register LDI:
 
 macro code*(name: untyped, body: untyped): untyped =
   var res = newStmtList()
-  var pos = 0
-  
+  let pos = genSym(nskVar, "pos")
+
+  res.add quote do:
+    var `pos` = 0
+
   for stmt in body:
     if stmt.kind != nnkCommand or stmt[0].kind != nnkIdent or $stmt[0] != "emit":
       error("Expected 'emit type, value'", stmt)
@@ -138,7 +142,6 @@ macro code*(name: untyped, body: untyped): untyped =
     
     res.add quote do:
       write[`typ`](`name`, `pos`.uint64, `val`)
-    
-    pos += sizeof(`typ`)
-  
+      `pos` += sizeof(`typ`)
+
   res
