@@ -12,3 +12,6 @@ bin           = @["ToyVM"]
 # Dependencies
 
 requires "nim >= 2.2.10"
+
+task test, "Run all tests from tests folder":
+  exec "nim r tests/runner.nim --verbosity:0"
