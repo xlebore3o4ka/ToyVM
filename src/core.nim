@@ -1,7 +1,7 @@
 import std/macros
 
 type
-  VMState* = ref object
+  VMState* {.acyclic.} = ref object
     running*: bool
 
     bytecode*: seq[byte]
