@@ -11,9 +11,8 @@ let vm = VMState(
 
 code vm.bytecode:
   emit uint8, I_PUSH
-  emit int64, 1
-  emit uint8, I_PUSH
   emit int64, 0
-  emit uint8, I_DIV
 
-vm.run
+echo vm.run, 's'
+
+echo read[int64](vm.stack, 0)

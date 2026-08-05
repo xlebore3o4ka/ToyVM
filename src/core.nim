@@ -1,4 +1,4 @@
-import std/macros
+import std/[macros, times]
 
 type
   VMState* {.acyclic.} = ref object
@@ -38,10 +38,12 @@ template pop[T](state: VMState): T =
 var dispatch: array[256, pointer]
 var opcodeCounter {.compileTime.} = 0
 
-proc run*(state: VMState) =
+proc run*(state: VMState): float =
+  let start = cpuTime()
   while state.running:
     let opcode = fetch[uint8](state)
     cast[proc(state: VMState) {.nimcall.}](dispatch[opcode])(state)
+  return cpuTime() - start
 
 proc replaceState(n: NimNode, sym: NimNode): NimNode =
   if n.kind == nnkIdent and $n == "state":
@@ -68,63 +70,67 @@ macro register(name, body: untyped): untyped =
     opcodeCounter.inc
     dispatch[`constName`] = cast[pointer](`procName`)
 
+macro registerBitnessFamily*(name, body: untyped): untyped =
+  result = newStmtList()
+
+  let suffixes = ["B", "W", "D", "Q"]
+  let types = [
+    ident("uint8"),
+    ident("int16"),
+    ident("int32"),
+    ident("int64")
+  ]
+
+  for i in 0..<suffixes.len:
+    let opcode = ident($name & suffixes[i])
+    let T = types[i]
+
+    result.add quote do:
+      register `opcode`:
+        type T {.inject.} = `T`
+
+        `body`
+
 register RET:
   state.running = false
 
-register PUSH:
-  push[int64](state, fetch[int64](state))
+registerBitnessFamily PUSH:
+  push[T](state, fetch[T](state))
 
-register ADD:
-  let b = pop[int64](state)
-  push[int64](state, pop[int64](state) + b)
+registerBitnessFamily ADD:
+  let rhs = pop[T](state)
+  let lhs = pop[T](state)
+  push[T](state, lhs + rhs)
 
-register SUB:
-  let b = pop[int64](state)
-  push[int64](state, pop[int64](state) - b)
+registerBitnessFamily SUB:
+  let rhs = pop[T](state)
+  let lhs = pop[T](state)
+  push[T](state, lhs - rhs)
 
-register MUL:
-  let b = pop[int64](state)
-  push[int64](state, pop[int64](state) * b)
+registerBitnessFamily MUL:
+  let rhs = pop[T](state)
+  let lhs = pop[T](state)
+  push[T](state, lhs * rhs)
 
-register DIV:
-  let b = pop[int64](state)
-  push[int64](state, pop[int64](state) div b)
+registerBitnessFamily DIV:
+  let rhs = pop[T](state)
+  let lhs = pop[T](state)
+  push[T](state, lhs div rhs)
 
-register MOD:
-  let b = pop[int64](state)
-  push[int64](state, pop[int64](state) mod b)
+macro instMODHELPER_shiftForType(T: typedesc): untyped =
+  let typeNode = T.getType()
+  let typeSize = typeNode.getSize()
+  
+  let shiftValue = typeSize * 8 - 1
+  
+  result = newLit(shiftValue)
 
-register GT:
-  let b = pop[int64](state)
-  push[bool](state, pop[int64](state) > b)
-
-register LT:
-  let b = pop[int64](state)
-  push[bool](state, pop[int64](state) < b)
-
-register GTE:
-  let b = pop[int64](state)
-  push[bool](state, pop[int64](state) >= b)
-
-register LTE:
-  let b = pop[int64](state)
-  push[bool](state, pop[int64](state) <= b)
-
-register EQ:
-  let b = pop[int64](state)
-  push[bool](state, pop[int64](state) == b)
-
-register NEQ:
-  let b = pop[int64](state)
-  push[bool](state, pop[int64](state) != b)
-
-register STI:
-  let offset = fetch[uint64](state)
-  write[int64](state.memory, offset, pop[int64](state))
-
-register LDI:
-  let offset = fetch[uint64](state)
-  push[int64](state, read[int64](state.memory, offset))
+registerBitnessFamily MOD:
+  let rhs = pop[T](state)
+  let lhs = pop[T](state)
+  let m = lhs mod rhs
+  let mask = m shr (instMODHELPER_shiftForType(T))
+  push[T](state, m + (rhs and mask))
 
 macro code*(name: untyped, body: untyped): untyped =
   var res = newStmtList()
