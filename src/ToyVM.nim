@@ -6,13 +6,14 @@ let vm = VMState(
   pc: 0,
   stack: newSeq[byte](0xFF),
   sp: 0,
-  memory: newSeq[byte](0xFFFF)
+  memory: newSeq[byte](0xFFFF),
+  X: 0, Y: 0, A: 0
 )
 
 code vm.bytecode:
-  emit uint8, I_PUSH
-  emit int64, 0
+  inst I_IA; imm 10
+  inst I_MULA; imm 5
 
 echo vm.run, 's'
 
-echo read[int64](vm.stack, 0)
+echo vm.A
