@@ -1,0 +1,157 @@
+# TodoList: Инструкции процессора
+
+- [x] IX imm
+- [x] IY imm
+- [x] IA imm
+- [x] TXY
+- [x] TYX
+- [x] TXA
+- [x] TYA
+- [x] TAX
+- [x] TAY
+- [x] SWAPXY
+- [x] SWAPXA
+- [x] SWAPYA
+- [x] ADD
+- [x] SUB
+- [x] MUL
+- [x] DIV
+- [x] MOD
+- [x] AND
+- [x] OR
+- [x] XOR
+- [x] SHL
+- [x] SHR
+- [x] GT
+- [x] LT
+- [x] GE
+- [x] LE
+- [x] EQ
+- [x] NE
+- [x] ADDX imm
+- [x] SUBX imm
+- [x] MULX imm
+- [x] DIVX imm
+- [x] MODX imm
+- [x] ANDX imm
+- [x] ORX imm
+- [x] XORX imm
+- [x] SHLX imm
+- [x] SHRX imm
+- [x] GTX imm
+- [x] LTX imm
+- [x] GEX imm
+- [x] LEX imm
+- [x] EQX imm
+- [x] NEX imm
+- [x] ADDY imm
+- [x] SUBY imm
+- [x] MULY imm
+- [x] DIVY imm
+- [x] MODY imm
+- [x] ANDY imm
+- [x] ORY imm
+- [x] XORY imm
+- [x] SHLY imm
+- [x] SHRY imm
+- [x] GTY imm
+- [x] LTY imm
+- [x] GEY imm
+- [x] LEY imm
+- [x] EQY imm
+- [x] NEY imm
+- [x] ADDA imm
+- [x] SUBA imm
+- [x] MULA imm
+- [x] DIVA imm
+- [x] MODA imm
+- [x] ANDA imm
+- [x] ORA imm
+- [x] XORA imm
+- [x] SHLA imm
+- [x] SHRA imm
+- [x] GTA imm
+- [x] LTA imm
+- [x] GEA imm
+- [x] LEA imm
+- [x] EQA imm
+- [x] NEA imm
+- [x] NOTX
+- [x] NOTY
+- [x] NOTA
+- [x] BNOTX
+- [x] BNOTY
+- [x] BNOTA
+- [x] ABSX
+- [x] ABSY
+- [x] ABSA
+- [x] NEGX
+- [x] NEGY
+- [x] NEGA
+- [x] JMPA
+- [x] JMPX
+- [x] JMPY
+- [ ] IJMP addr
+- [ ] JTX
+- [ ] JFX
+- [ ] JTY
+- [ ] JFY
+- [ ] IJTX addr
+- [ ] IJFX addr
+- [ ] IJTY addr
+- [ ] IJFY addr
+- [ ] IJTA addr
+- [ ] IJFA addr
+- [ ] INCX
+- [ ] DECX
+- [ ] INCY
+- [ ] DECY
+- [ ] INCA
+- [ ] DECA
+- [ ] XLDY
+- [ ] XLDA
+- [ ] YLDX
+- [ ] YLDA
+- [ ] ALDX
+- [ ] ALDY
+- [ ] XSTY
+- [ ] XSTA
+- [ ] YSTX
+- [ ] YSTA
+- [ ] ASTX
+- [ ] ASTY
+- [ ] ILDX ptr
+- [ ] ILDY ptr
+- [ ] ILDA ptr
+- [ ] ISTX ptr
+- [ ] ISTY ptr
+- [ ] ISTA ptr
+- [ ] PUSHX
+- [ ] PUSHY
+- [ ] PUSHA
+- [ ] POPX
+- [ ] POPY
+- [ ] POPA
+- [ ] TSPX
+- [ ] TSPY
+- [ ] TSPA
+- [ ] TXSP
+- [ ] TYSP
+- [ ] TASP
+- [ ] PEEKX ptr
+- [ ] PEEKY ptr
+- [ ] PEEKA ptr
+- [ ] POKEX ptr
+- [ ] POKEY ptr
+- [ ] POKEA ptr
+- [ ] DUP
+- [ ] SWAPST
+- [ ] CALLA
+- [ ] CALLX
+- [ ] CALLY
+- [ ] ICALL ptr
+- [ ] RETA
+- [ ] RETX
+- [ ] RETY
+- [ ] SYS imm
+- [ ] NOP
