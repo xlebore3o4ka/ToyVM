@@ -170,13 +170,13 @@ register EQ:
 register NE:
   state.A = int64(state.X != state.Y)
 
-proc replaceRegister(n: NimNode, rsym: NimNode): NimNode =
-  if n.kind == nnkIdent and $n == "R":
-    return rsym
+proc replaceIdent(n: NimNode, newSym: NimNode, oldName: string = "R"): NimNode =
+  if n.kind == nnkIdent and $n == oldName:
+    return newSym
 
   result = copyNimTree(n)
   for i in 0..<n.len:
-    result[i] = replaceRegister(n[i], rsym)
+    result[i] = replaceIdent(n[i], newSym, oldName)
 
 macro registerRegFamily(name, body: untyped): untyped =
   let registerSet = ["X", "Y", "A"]
@@ -186,7 +186,7 @@ macro registerRegFamily(name, body: untyped): untyped =
   for r in registerSet:
     let newName = ident($name & r)
     let rsym = genSym(nskParam, r)
-    let newBody = replaceRegister(body, rsym)
+    let newBody = replaceIdent(body, rsym)
 
     result.add quote do:
       register `newName`:
@@ -255,6 +255,46 @@ registerRegFamily NEG:
 registerRegFamily JMP:
   state.pc = uint64(state.R)
 
+register IJMP:
+  state.pc = state.fetchAddr()
+
+registerRegFamily IJT:
+  if bool(state.R): state.pc = state.fetchAddr()
+
+registerRegFamily IJF:
+  if not bool(state.R): state.pc = state.fetchAddr()
+
+registerRegFamily INC:
+  state.R.inc
+
+registerRegFamily DEC:
+  state.R.dec
+
+macro registerRegPair(name, body: untyped): untyped =
+  let registers = ["X", "Y", "A"]
+  result = newStmtList()
+
+  for destR in registers:
+    for srcR in registers:
+      if destR != srcR:
+        let destSym = genSym(nskParam, destR)
+        let srcSym = genSym(nskParam, srcR)
+        let instName = ident(destR & $name & srcR)
+        
+        var newBody = body
+        newBody = replaceIdent(newBody, destSym, "destR")
+        newBody = replaceIdent(newBody, srcSym, "srcR")
+        
+        result.add quote do:
+          register `instName`:
+            `newBody`
+
+registerRegPair LD:
+  state.destR = read[int64](state.memory, uint64(state.srcR))
+
+registerRegPair ST:
+  write[int64](state.memory, uint(state.destR), int64(state.srcR))
+
 macro code*(name: untyped, body: untyped): untyped =
   var res = newStmtList()
   let pos = genSym(nskVar, "pos")
@@ -263,18 +303,26 @@ macro code*(name: untyped, body: untyped): untyped =
     var `pos` = 0
 
   for stmt in body:
-    if stmt.kind != nnkCommand or stmt[0].kind != nnkIdent:
-      error("Expected 'inst', 'imm', 'ptr' or 'addr'", stmt)
-    
-    let val = stmt[1]
     var typ: NimNode
+    var val: NimNode
 
-    if $stmt[0] == "inst":
-      typ = bindSym("uint8")
-    elif $stmt[0] == "imm":
-      typ = bindSym("int64")
-    elif $stmt[0] == "ptr" or $stmt[0] == "addr":
+    if stmt.kind == nnkCommand:
+      let cmd = stmt[0]
+      val = stmt[1]
+
+      if $cmd == "inst":
+        typ = bindSym("uint8")
+      elif $cmd == "imm":
+        typ = bindSym("int64")
+      elif $cmd == "addr":
+        typ = bindSym("uint64")
+      else:
+        error("Expected 'inst', 'imm', 'ptr' or 'addr'", stmt)
+    
+    elif stmt.kind == nnkPtrTy:
       typ = bindSym("uint64")
+      val = stmt[0]
+    
     else:
       error("Expected 'inst', 'imm', 'ptr' or 'addr'", stmt)
     

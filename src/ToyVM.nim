@@ -11,9 +11,11 @@ let vm = VMState(
 )
 
 code vm.bytecode:
-  inst I_IA; imm 10
-  inst I_MULA; imm 5
+  inst I_IX; imm 10
+  inst I_MULX; imm 5
+  inst I_IA; ptr 10
+  inst I_ASTX
 
 echo vm.run, 's'
 
-echo vm.A
+echo vm.memory[0..15]

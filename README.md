@@ -91,41 +91,37 @@
 - [x] JMPA
 - [x] JMPX
 - [x] JMPY
-- [ ] IJMP addr
-- [ ] JTX
-- [ ] JFX
-- [ ] JTY
-- [ ] JFY
-- [ ] IJTX addr
-- [ ] IJFX addr
-- [ ] IJTY addr
-- [ ] IJFY addr
-- [ ] IJTA addr
-- [ ] IJFA addr
-- [ ] INCX
-- [ ] DECX
-- [ ] INCY
-- [ ] DECY
-- [ ] INCA
-- [ ] DECA
-- [ ] XLDY
-- [ ] XLDA
-- [ ] YLDX
-- [ ] YLDA
-- [ ] ALDX
-- [ ] ALDY
-- [ ] XSTY
-- [ ] XSTA
-- [ ] YSTX
-- [ ] YSTA
-- [ ] ASTX
-- [ ] ASTY
-- [ ] ILDX ptr
-- [ ] ILDY ptr
-- [ ] ILDA ptr
-- [ ] ISTX ptr
-- [ ] ISTY ptr
-- [ ] ISTA ptr
+- [x] IJMP addr
+- [x] IJTX addr
+- [x] IJFX addr
+- [x] IJTY addr
+- [x] IJFY addr
+- [x] IJTA addr
+- [x] IJFA addr
+- [x] INCX
+- [x] DECX
+- [x] INCY
+- [x] DECY
+- [x] INCA
+- [x] DECA
+- [x] XLDY        X = [Y]
+- [x] XLDA        X = [A]
+- [x] YLDX        Y = [X]
+- [x] YLDA        Y = [A]
+- [x] ALDX        A = [X]
+- [x] ALDY        A = [Y]
+- [x] XSTY        [X] = Y
+- [x] XSTA        [X] = A
+- [x] YSTX        [Y] = X
+- [x] YSTA        [Y] = A
+- [x] ASTX        [A] = X
+- [x] ASTY        [A] = Y
+- [ ] ILDX ptr    X = [ptr]
+- [ ] ILDY ptr    Y = [ptr]
+- [ ] ILDA ptr    A = [ptr]
+- [ ] ISTX ptr    [ptr] = X
+- [ ] ISTY ptr    [ptr] = Y
+- [ ] ISTA ptr    [ptr] = A
 - [ ] PUSHX
 - [ ] PUSHY
 - [ ] PUSHA
