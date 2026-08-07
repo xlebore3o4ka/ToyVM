@@ -1,4 +1,5 @@
-import std/[macros, times]
+import std/[macros, tables, monotimes, times]
+export tables
 
 type
   VMState* {.acyclic.} = ref object
@@ -36,6 +37,9 @@ template fetchPtr*(state: VMState): uint64 =
 template fetchAddr*(state: VMState): uint64 =
   fetch[uint64](state)
 
+template skipAddr*(state: VMState) =
+  state.pc += uint64(sizeof(uint64))
+
 proc push[T](state: VMState, value: T) {.inline.} =
   let size = sizeof(T)
   let len = state.stack.len
@@ -50,13 +54,24 @@ template pop[T](state: VMState): T =
 
 var dispatch: array[256, pointer]
 var opcodeCounter {.compileTime.} = 0
+var opcodeToName*: seq[string]
+opcodeToName.setLen(256)
 
-proc run*(state: VMState): float =
-  let start = cpuTime()
+proc run*(state: VMState, debug: static[bool] = false): Duration =
+  let start = getMonoTime()
+  var tact: uint64 = 0
+
   while state.running:
-    let opcode = fetch[uint8](state)
+    let pc = state.pc
+    state.pc += uint64(sizeof(uint8))
+    let opcode = (cast[ptr uint8](state.bytecode[pc].unsafeAddr))[]
     cast[proc(state: VMState) {.nimcall.}](dispatch[opcode])(state)
-  return cpuTime() - start
+    
+    when debug:
+      echo "tact: ", tact, " pc=", pc, " inst=", opcodeToName[opcode], " sp=", state.sp, " X=", state.X, " Y=", state.Y, " A=", state.A
+      tact.inc
+
+  return getMonoTime() - start
 
 proc replaceState(n: NimNode, sym: NimNode): NimNode =
   if n.kind == nnkIdent and $n == "state":
@@ -80,6 +95,7 @@ macro register(name, body: untyped): untyped =
       {.pop.}
 
     let `constName`* = uint8(opcodeCounter)
+    opcodeToName[opcodeCounter] = astToStr(`constName`)
     opcodeCounter.inc
     dispatch[`constName`] = cast[pointer](`procName`)
 
@@ -260,9 +276,11 @@ register IJMP:
 
 registerRegFamily IJT:
   if bool(state.R): state.pc = state.fetchAddr()
+  else: state.skipAddr()
 
 registerRegFamily IJF:
   if not bool(state.R): state.pc = state.fetchAddr()
+  else: state.skipAddr()
 
 registerRegFamily INC:
   state.R.inc
@@ -295,12 +313,20 @@ registerRegPair LD:
 registerRegPair ST:
   write[int64](state.memory, uint(state.destR), int64(state.srcR))
 
+registerRegFamily LOOP:
+  if bool(state.R):
+    state.R.dec
+    state.pc = state.fetchAddr()
+  else: state.skipAddr()
+
 macro code*(name: untyped, body: untyped): untyped =
+
   var res = newStmtList()
   let pos = genSym(nskVar, "pos")
+  var labelTable: Table[string, NimNode]
 
   res.add quote do:
-    var `pos` = 0
+    var `pos`: uint64 = 0
 
   for stmt in body:
     var typ: NimNode
@@ -316,18 +342,63 @@ macro code*(name: untyped, body: untyped): untyped =
         typ = bindSym("int64")
       elif $cmd == "addr":
         typ = bindSym("uint64")
+      elif $cmd == "label":
+        let lbl = genSym(nskLet, $val)
+        res.add quote do:
+          let `lbl` = `pos`
+        labelTable[$val] = lbl
+        continue
       else:
-        error("Expected 'inst', 'imm', 'ptr' or 'addr'", stmt)
+        error("Expected 'inst', 'imm', 'ptr', 'addr' or 'label'", stmt)
     
     elif stmt.kind == nnkPtrTy:
       typ = bindSym("uint64")
       val = stmt[0]
     
     else:
-      error("Expected 'inst', 'imm', 'ptr' or 'addr'", stmt)
+      error("Expected 'inst', 'imm', 'ptr', 'addr' or 'label'", stmt)
+      
+    if val.kind in {nnkIdent, nnkSym} and $val in labelTable:
+      typ = ident("uint64")
+    
+    res.add quote do:
+      `pos` += uint(sizeof(`typ`))
+
+  res.add quote do:
+    `pos` = 0
+
+  for stmt in body:
+    var typ: NimNode
+    var val: NimNode
+
+    if stmt.kind == nnkCommand:
+      let cmd = stmt[0]
+      val = stmt[1]
+
+      if $cmd == "inst":
+        typ = bindSym("uint8")
+      elif $cmd == "imm":
+        typ = bindSym("int64")
+      elif $cmd == "addr":
+        typ = bindSym("uint64")
+      elif $cmd == "label":
+        continue
+      else:
+        error("Expected 'inst', 'imm', 'ptr', 'addr' or 'label'", stmt)
+    
+    elif stmt.kind == nnkPtrTy:
+      typ = bindSym("uint64")
+      val = stmt[0]
+    
+    else:
+      error("Expected 'inst', 'imm', 'ptr', 'addr' or 'label'", stmt)
+      
+    if val.kind in {nnkIdent, nnkSym} and $val in labelTable:
+      let lblSym = labelTable[$val]
+      val = lblSym
     
     res.add quote do:
       write[`typ`](`name`, `pos`.uint64, `val`)
-      `pos` += sizeof(`typ`)
+      `pos` += uint(sizeof(`typ`))
 
   res

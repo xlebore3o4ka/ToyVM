@@ -151,3 +151,6 @@
 - [ ] RETY
 - [ ] SYS imm
 - [ ] NOP
+- [x] LOOPX
+- [x] LOOPY
+- [x] LOOPA

@@ -180,3 +180,7 @@ RETY       ; POPY;      JMPY
 
 SYS imm
 NOP
+
+LOOPX addr ; if (X) JMP addr; DEC X
+LOOPY addr ; if (Y) JMP addr; DEC Y
+LOOPA addr ; if (A) JMP addr; DEC A
