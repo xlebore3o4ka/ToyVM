@@ -1,5 +1,4 @@
 import core
-import std/random
 
 let vm = VMState(
   running: true,
@@ -10,21 +9,15 @@ let vm = VMState(
   memory: newSeq[byte](0xFFFF),
   X: 0, Y: 0, A: 0
 )
-randomize()
-let seed = rand(1000)
-code vm.bytecode:
-  inst I_IX; imm 1000000
-  inst I_IY; imm seed
 
-  label loop
-  inst I_ADD
-  inst I_TYA
-  inst I_TAX
-  inst I_IX; imm 10
-  inst I_XSTY
-  inst I_TXA
-  inst I_LOOPX; addr loop
+code vm.bytecode:
+  inst I_IPUSH; imm 0
+  inst I_IPUSH; imm 0
+  inst I_IPOKE; ptr 1; imm 10
+  inst I_PEEKX; ptr 1
+  inst I_ADDX; imm 6
+  inst I_POKEX; ptr 1
 
 echo vm.run()
 
-echo vm.Y
+echo vm.X

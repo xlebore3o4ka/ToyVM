@@ -116,30 +116,32 @@
 - [x] YSTA        [Y] = A
 - [x] ASTX        [A] = X
 - [x] ASTY        [A] = Y
-- [ ] ILDX ptr    X = [ptr]
-- [ ] ILDY ptr    Y = [ptr]
-- [ ] ILDA ptr    A = [ptr]
-- [ ] ISTX ptr    [ptr] = X
-- [ ] ISTY ptr    [ptr] = Y
-- [ ] ISTA ptr    [ptr] = A
-- [ ] PUSHX
-- [ ] PUSHY
-- [ ] PUSHA
-- [ ] POPX
-- [ ] POPY
-- [ ] POPA
-- [ ] TSPX
-- [ ] TSPY
-- [ ] TSPA
-- [ ] TXSP
-- [ ] TYSP
-- [ ] TASP
-- [ ] PEEKX ptr
-- [ ] PEEKY ptr
-- [ ] PEEKA ptr
-- [ ] POKEX ptr
-- [ ] POKEY ptr
-- [ ] POKEA ptr
+- [x] ILDX ptr    X = [ptr]
+- [x] ILDY ptr    Y = [ptr]
+- [x] ILDA ptr    A = [ptr]
+- [x] ISTX ptr    [ptr] = X
+- [x] ISTY ptr    [ptr] = Y
+- [x] ISTA ptr    [ptr] = A
+- [x] PUSHX
+- [x] PUSHY
+- [x] PUSHA
+- [x] POPX
+- [x] POPY
+- [x] POPA
+- [x] IPUSH imm
+- [x] TSPX
+- [x] TSPY
+- [x] TSPA
+- [x] TXSP
+- [x] TYSP
+- [x] TASP
+- [x] PEEKX ptr
+- [x] PEEKY ptr
+- [x] PEEKA ptr
+- [x] POKEX ptr
+- [x] POKEY ptr
+- [x] POKEA ptr
+- [x] IPOKE ptr
 - [ ] DUP
 - [ ] SWAPST
 - [ ] CALLA

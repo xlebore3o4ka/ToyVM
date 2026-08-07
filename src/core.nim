@@ -25,7 +25,7 @@ template write*[T](container: seq[byte], offset: uint64, value: T) =
 
 template fetch[T](state: VMState): T =
   let pc = state.pc
-  state.pc += uint64(sizeof(T))
+  state.pc += cast[uint64](sizeof(T))
   (cast[ptr T](state.bytecode[pc].unsafeAddr))[]
 
 template fetchImm*(state: VMState): int64 =
@@ -38,15 +38,15 @@ template fetchAddr*(state: VMState): uint64 =
   fetch[uint64](state)
 
 template skipAddr*(state: VMState) =
-  state.pc += uint64(sizeof(uint64))
+  state.pc += cast[uint64](sizeof(uint64))
 
 proc push[T](state: VMState, value: T) {.inline.} =
   let size = sizeof(T)
   let len = state.stack.len
-  if state.sp + uint64(size) > uint64(len):
+  if state.sp + cast[uint64](size) > uint64(len):
     state.stack.setLen(len * 2)
   (cast[ptr T](state.stack[state.sp].unsafeAddr))[] = value
-  state.sp += uint64(size)
+  state.sp += cast[uint64](size)
 
 template pop[T](state: VMState): T =
   state.sp -= uint64(sizeof(T))
@@ -169,22 +169,22 @@ register SHR:
   state.A = state.X shr (state.Y and 63)
 
 register GT:
-  state.A = int64(state.X > state.Y)
+  state.A = cast[int64](state.X > state.Y)
 
 register LT:
-  state.A = int64(state.X < state.Y)
+  state.A = cast[int64](state.X < state.Y)
 
 register GE:
-  state.A = int64(state.X >= state.Y)
+  state.A = cast[int64](state.X >= state.Y)
 
 register LE:
-  state.A = int64(state.X <= state.Y)
+  state.A = cast[int64](state.X <= state.Y)
 
 register EQ:
-  state.A = int64(state.X == state.Y)
+  state.A = cast[int64](state.X == state.Y)
 
 register NE:
-  state.A = int64(state.X != state.Y)
+  state.A = cast[int64](state.X != state.Y)
 
 proc replaceIdent(n: NimNode, newSym: NimNode, oldName: string = "R"): NimNode =
   if n.kind == nnkIdent and $n == oldName:
@@ -239,28 +239,28 @@ registerRegFamily SHR:
   state.R = state.R shr (state.fetchImm() and 63)
 
 registerRegFamily GT:
-  state.R = int64(state.R > state.fetchImm())
+  state.R = cast[int64](state.R > state.fetchImm())
 
 registerRegFamily LT:
-  state.R = int64(state.R < state.fetchImm())
+  state.R = cast[int64](state.R < state.fetchImm())
 
 registerRegFamily GE:
-  state.R = int64(state.R >= state.fetchImm())
+  state.R = cast[int64](state.R >= state.fetchImm())
 
 registerRegFamily LE:
-  state.R = int64(state.R <= state.fetchImm())
+  state.R = cast[int64](state.R <= state.fetchImm())
 
 registerRegFamily EQ:
-  state.R = int64(state.R == state.fetchImm())
+  state.R = cast[int64](state.R == state.fetchImm())
 
 registerRegFamily NE:
-  state.R = int64(state.R != state.fetchImm())
+  state.R = cast[int64](state.R != state.fetchImm())
 
 registerRegFamily NOT:
   state.R = not state.R
 
 registerRegFamily BNOT:
-  state.R = int64(state.R == 0)
+  state.R = cast[int64](state.R == 0)
 
 registerRegFamily ABS:
   state.R = abs(state.R)
@@ -318,6 +318,46 @@ registerRegFamily LOOP:
     state.R.dec
     state.pc = state.fetchAddr()
   else: state.skipAddr()
+
+registerRegFamily ILD:
+  state.R = read[int64](state.memory, state.fetchPtr())
+
+registerRegFamily IST:
+  write[int64](state.memory, state.fetchPtr(), state.R)
+
+registerRegFamily PUSH:
+  push[int64](state, state.R)
+
+registerRegFamily POP:
+  state.R = pop[int64](state)
+
+register IPUSH:
+  push[int64](state, state.fetchImm())
+
+registerRegFamily TSP:
+  state.sp = cast[uint](state.R)
+
+register TXSP:
+  state.X = cast[int](state.sp)
+
+register TYSP:
+  state.Y = cast[int](state.sp)
+
+register TASP:
+  state.A = cast[int](state.sp)
+
+registerRegFamily PEEK:
+  let address = (state.sp - cast[uint](sizeof(int64))) - cast[uint](state.fetchPtr())
+  state.R = read[int64](state.stack, address)
+
+registerRegFamily POKE:
+  let address = (state.sp - cast[uint](sizeof(int64))) - cast[uint](state.fetchPtr())
+  write[int64](state.stack, address, state.R)
+
+register IPOKE:
+  let address = (state.sp - cast[uint](sizeof(int64))) - cast[uint](state.fetchPtr())
+  let value = state.fetchImm()
+  write[int64](state.stack, address, value)
 
 macro code*(name: untyped, body: untyped): untyped =
 
