@@ -142,15 +142,12 @@
 - [x] POKEY ptr
 - [x] POKEA ptr
 - [x] IPOKE ptr
-- [ ] DUP
-- [ ] SWAPST
-- [ ] CALLA
-- [ ] CALLX
-- [ ] CALLY
-- [ ] ICALL ptr
-- [ ] RETA
-- [ ] RETX
-- [ ] RETY
+- [x] DUP
+- [x] SWAP
+- [x] CALLA
+- [x] CALLX
+- [x] CALLY
+- [x] CALL ptr
 - [ ] SYS imm
 - [ ] NOP
 - [x] LOOPX

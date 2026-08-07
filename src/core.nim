@@ -99,7 +99,7 @@ macro register(name, body: untyped): untyped =
     opcodeCounter.inc
     dispatch[`constName`] = cast[pointer](`procName`)
 
-register RET:
+register HALT:
   state.running = false
 
 register IX:
@@ -311,7 +311,7 @@ registerRegPair LD:
   state.destR = read[int64](state.memory, uint64(state.srcR))
 
 registerRegPair ST:
-  write[int64](state.memory, uint(state.destR), int64(state.srcR))
+  write[int64](state.memory, uint64(state.destR), int64(state.srcR))
 
 registerRegFamily LOOP:
   if bool(state.R):
@@ -334,8 +334,11 @@ registerRegFamily POP:
 register IPUSH:
   push[int64](state, state.fetchImm())
 
+register POP:
+  discard pop[int64](state)
+
 registerRegFamily TSP:
-  state.sp = cast[uint](state.R)
+  state.sp = cast[uint64](state.R)
 
 register TXSP:
   state.X = cast[int](state.sp)
@@ -347,17 +350,39 @@ register TASP:
   state.A = cast[int](state.sp)
 
 registerRegFamily PEEK:
-  let address = (state.sp - cast[uint](sizeof(int64))) - cast[uint](state.fetchPtr())
+  let address = (state.sp - cast[uint64](sizeof(int64))) - cast[uint64](state.fetchPtr())
   state.R = read[int64](state.stack, address)
 
 registerRegFamily POKE:
-  let address = (state.sp - cast[uint](sizeof(int64))) - cast[uint](state.fetchPtr())
+  let address = (state.sp - cast[uint64](sizeof(int64))) - cast[uint64](state.fetchPtr())
   write[int64](state.stack, address, state.R)
 
 register IPOKE:
-  let address = (state.sp - cast[uint](sizeof(int64))) - cast[uint](state.fetchPtr())
+  let address = (state.sp - cast[uint64](sizeof(int64))) - cast[uint64](state.fetchPtr())
   let value = state.fetchImm()
   write[int64](state.stack, address, value)
+
+register DUP:
+  let top = read[int64](state.stack, state.sp - cast[uint64](sizeof(int64)))
+  push[int64](state, top)
+
+register SWAP:
+  let top = pop[int64](state)
+  let second = pop[int64](state)
+  push[int64](state, top)
+  push[int64](state, second)
+
+registerRegFamily CALL:
+  push[uint64](state, state.pc)
+  state.pc = cast[uint64](state.R)
+
+register CALL:
+  let address = state.fetchAddr()
+  push[uint64](state, state.pc)
+  state.pc = cast[uint64](address)
+
+register RET:
+  state.pc = pop[uint64](state)
 
 macro code*(name: untyped, body: untyped): untyped =
 
@@ -402,7 +427,7 @@ macro code*(name: untyped, body: untyped): untyped =
       typ = ident("uint64")
     
     res.add quote do:
-      `pos` += uint(sizeof(`typ`))
+      `pos` += uint64(sizeof(`typ`))
 
   res.add quote do:
     `pos` = 0
@@ -439,6 +464,6 @@ macro code*(name: untyped, body: untyped): untyped =
     
     res.add quote do:
       write[`typ`](`name`, `pos`.uint64, `val`)
-      `pos` += uint(sizeof(`typ`))
+      `pos` += uint64(sizeof(`typ`))
 
   res

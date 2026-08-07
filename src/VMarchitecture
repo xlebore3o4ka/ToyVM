@@ -173,10 +173,7 @@ SWAPST     ; t = mem[sp]; mem[sp] = mem[sp+8]; mem[sp+8] = t
 CALLA      ; PUSH pc+1; JMPA
 CALLX      ; PUSH pc+1; JMPX
 CALLY      ; PUSH pc+1; JMPY
-ICALL ptr  ; PUSH pc+9; IJMP ptr
-RETA       ; POPA;      JMPA 
-RETX       ; POPX;      JMPX 
-RETY       ; POPY;      JMPY
+ICALL addr ; PUSH pc+9; IJMP addr
 
 SYS imm
 NOP

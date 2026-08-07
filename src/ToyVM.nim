@@ -11,13 +11,32 @@ let vm = VMState(
 )
 
 code vm.bytecode:
-  inst I_IPUSH; imm 0
-  inst I_IPUSH; imm 0
-  inst I_IPOKE; ptr 1; imm 10
-  inst I_PEEKX; ptr 1
-  inst I_ADDX; imm 6
-  inst I_POKEX; ptr 1
+  inst I_IJMP; addr start
 
-echo vm.run()
+  label add
 
-echo vm.X
+  inst I_PUSHX
+  inst I_PUSHY
+  inst I_PUSHA
+
+  inst I_PEEKY; ptr 4
+  inst I_PEEKX; ptr 5
+  inst I_ADD
+  inst I_POKEA; ptr 5
+
+  inst I_POPA
+  inst I_POPY
+  inst I_POPX
+  inst I_POP
+
+  inst I_RET
+
+  label start
+
+  inst I_IPUSH; imm 10
+  inst I_IPUSH; imm 20
+  inst I_CALL; addr add
+
+echo vm.run(true)
+
+echo vm.stack[0]
