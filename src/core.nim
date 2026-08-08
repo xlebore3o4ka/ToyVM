@@ -10,6 +10,7 @@ type
 
     stack*: seq[byte]
     sp*: uint64
+    callStack*: seq[uint64]
 
     memory*: seq[byte]
 
@@ -41,12 +42,8 @@ template skipAddr*(state: VMState) =
   state.pc += cast[uint64](sizeof(uint64))
 
 proc push[T](state: VMState, value: T) {.inline.} =
-  let size = sizeof(T)
-  let len = state.stack.len
-  if state.sp + cast[uint64](size) > uint64(len):
-    state.stack.setLen(len * 2)
   (cast[ptr T](state.stack[state.sp].unsafeAddr))[] = value
-  state.sp += cast[uint64](size)
+  state.sp += cast[uint64](sizeof(T))
 
 template pop[T](state: VMState): T =
   state.sp -= uint64(sizeof(T))
@@ -373,16 +370,22 @@ register SWAP:
   push[int64](state, second)
 
 registerRegFamily CALL:
-  push[uint64](state, state.pc)
+  state.callStack.add(state.pc)
   state.pc = cast[uint64](state.R)
 
 register CALL:
   let address = state.fetchAddr()
-  push[uint64](state, state.pc)
+  state.callStack.add(state.pc)
   state.pc = cast[uint64](address)
 
 register RET:
-  state.pc = pop[uint64](state)
+  state.pc = state.callStack.pop()
+
+register SYS:
+  let _ = state.fetchAddr()
+
+register NOP:
+  discard
 
 macro code*(name: untyped, body: untyped): untyped =
 
