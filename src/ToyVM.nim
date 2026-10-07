@@ -12,6 +12,9 @@ let vm = VMState(
 )
 
 code vm.bytecode:
-  label start
+  inst I_IX; imm 1000000
+  label loop
+  inst I_DECX
+  inst I_IJTX; addr loop
 
 echo vm.run(false)
